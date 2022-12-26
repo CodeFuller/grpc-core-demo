@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Grpc.Core;
 using GrpcCoreDemo.Grpc;
 using log4net;
@@ -9,11 +11,45 @@ namespace ServerApp
     {
         private static readonly ILog Log = LogManager.GetLogger("ServerApp.DemoService");
 
-        public override Task<HelloResponse> SayHello(HelloRequest request, ServerCallContext context)
+        private IServerStreamWriter<GreetingNotification> GreetingNotificationsStreamWriter { get; set; }
+
+        public override async Task<HelloResponse> SayHello(HelloRequest request, ServerCallContext context)
         {
             Log.Info($"Got request from {request.Name}");
 
-            return Task.FromResult(new HelloResponse { Message = $"Hello, {request.Name}!" });
+            if (GreetingNotificationsStreamWriter == null)
+            {
+                Log.Error("Service is not subscribed to greeting notifications");
+                throw new InvalidOperationException();
+            }
+
+            await GreetingNotificationsStreamWriter.WriteAsync(new GreetingNotification
+            {
+                Name = request.Name,
+            });
+
+            return new HelloResponse
+            {
+                Message = $"Hello, {request.Name}!",
+            };
+        }
+
+        public override async Task SubscribeToGreetingNotifications(SubscribeToGreetingNotificationsRequest request, IServerStreamWriter<GreetingNotification> responseStream, ServerCallContext context)
+        {
+            Log.Info("Subscribed to greeting notifications");
+            GreetingNotificationsStreamWriter = responseStream;
+
+            await AwaitCancellation(context.CancellationToken);
+
+            Log.Info("Unsubscribed from greeting notifications");
+            GreetingNotificationsStreamWriter = null;
+        }
+
+        private static Task AwaitCancellation(CancellationToken token)
+        {
+            var completion = new TaskCompletionSource<object>();
+            token.Register(() => completion.SetResult(null));
+            return completion.Task;
         }
     }
 }

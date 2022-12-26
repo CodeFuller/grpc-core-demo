@@ -4,6 +4,7 @@ option csharp_namespace = "GrpcCoreDemo.Grpc";
 
 service Greeter {
 	rpc SayHello (HelloRequest) returns (HelloResponse) {}
+	rpc SubscribeToGreetingNotifications (SubscribeToGreetingNotificationsRequest) returns (stream GreetingNotification);
 }
 
 message HelloRequest {
@@ -12,4 +13,11 @@ message HelloRequest {
 
 message HelloResponse {
 	string message = 1;
+}
+
+message SubscribeToGreetingNotificationsRequest {
+}
+
+message GreetingNotification {
+	string name = 1;
 }
