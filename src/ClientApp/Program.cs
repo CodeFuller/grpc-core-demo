@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Common;
 using Grpc.Core;
 using GrpcCoreDemo.Grpc;
 using log4net;
@@ -21,7 +22,7 @@ namespace ClientApp
 
                 Log.Info("Creating service client ...");
 
-                var channel = new Channel("127.0.0.1:9999", ChannelCredentials.Insecure);
+                var channel = new Channel(ConnectionSettings.HostName, ConnectionSettings.PortNumber, GetClientCredentials());
                 var client = new Greeter.GreeterClient(channel);
 
                 Log.Info("Subscribing to greeting notifications ...");
@@ -29,6 +30,9 @@ namespace ClientApp
                 using (var cancellationTokenSource = new CancellationTokenSource())
                 {
                     var task = ProcessGreetingNotifications(stream.ResponseStream, cancellationTokenSource.Token);
+
+                    // Small delay before subscription is completed.
+                    Thread.Sleep(TimeSpan.FromMilliseconds(500));
 
                     Log.Info("Sending request to server ...");
                     var response = client.SayHello(new HelloRequest { Name = "CodeFuller" });
@@ -45,6 +49,20 @@ namespace ClientApp
 
                 return e.HResult;
             }
+        }
+
+        private static ChannelCredentials GetClientCredentials()
+        {
+            return ConnectionSettings.UseSsl ? GetSslClientCredentials() : ChannelCredentials.Insecure;
+        }
+
+        private static SslCredentials GetSslClientCredentials()
+        {
+            var rootCertificates = File.ReadAllText(@"c:\temp\certificates\ca.crt");
+            var certificateChain = File.ReadAllText(@"c:\temp\certificates\client.crt");
+            var clientKey = File.ReadAllText(@"c:\temp\certificates\client.key");
+
+            return new SslCredentials(rootCertificates, new KeyCertificatePair(certificateChain, clientKey));
         }
 
         private static async Task ProcessGreetingNotifications(IAsyncStreamReader<GreetingNotification> stream, CancellationToken cancellationToken)
