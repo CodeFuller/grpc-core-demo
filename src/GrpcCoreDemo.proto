@@ -13,6 +13,10 @@ message HelloRequest {
 
 message HelloResponse {
 	string message = 1;
+	string emptyString = 2;
+	string nullString = 3;
+	repeated int32 emptyCollection = 4;
+	repeated int32 nullCollection = 5;
 }
 
 message SubscribeToGreetingNotificationsRequest {

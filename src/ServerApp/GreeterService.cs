@@ -31,6 +31,16 @@ namespace ServerApp
             return new HelloResponse
             {
                 Message = $"Hello, {request.Name}!",
+                EmptyString = String.Empty,
+
+                // There is no ability to set null for string field because explicit check for null is added in generated code.
+                // NullString = null,
+
+                EmptyCollection = { },
+
+                // There is no ability to set null for repeated field because it does not have setter.
+                // The field is never null because it is initialized with empty collection.
+                // NullCollection = null,
             };
         }
 
