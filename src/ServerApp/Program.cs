@@ -52,9 +52,9 @@ namespace ServerApp
         private static ServerCredentials GetSslServerCredentials()
         {
             // https://stackoverflow.com/questions/37714558
-            var rootCertificates = File.ReadAllText(@"C:\work\_days\2022.12.28\certificates4\ca.crt");
-            var certificateChain = File.ReadAllText(@"C:\work\_days\2022.12.28\certificates4\server.crt");
-            var serverKey = File.ReadAllText(@"C:\work\_days\2022.12.28\certificates4\server.key");
+            var rootCertificates = File.ReadAllText(@"c:\temp\certificates\ca.crt");
+            var certificateChain = File.ReadAllText(@"c:\temp\certificates\server.crt");
+            var serverKey = File.ReadAllText(@"c:\temp\certificates\server.key");
             var keyPair = new KeyCertificatePair(certificateChain, serverKey);
 
             return new SslServerCredentials(new List<KeyCertificatePair> { keyPair }, rootCertificates, SslClientCertificateRequestType.RequestAndRequireAndVerify);
