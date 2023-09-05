@@ -20,7 +20,7 @@ namespace ClientApp
             {
                 XmlConfigurator.Configure(new FileInfo("log4net.config"));
 
-                Log.Info("Creating service client ...");
+                Log.Info($"Creating service client for {ConnectionSettings.HostName}:{ConnectionSettings.PortNumber} ...");
 
                 var channel = new Channel(ConnectionSettings.HostName, ConnectionSettings.PortNumber, GetClientCredentials());
                 var client = new Greeter.GreeterClient(channel);
@@ -58,9 +58,11 @@ namespace ClientApp
 
         private static SslCredentials GetSslClientCredentials()
         {
-            var rootCertificates = File.ReadAllText(@"c:\temp\certificates\ca.crt");
-            var certificateChain = File.ReadAllText(@"c:\temp\certificates\client.crt");
-            var clientKey = File.ReadAllText(@"c:\temp\certificates\client.key");
+            var certificatesFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.HostName);
+
+            var rootCertificates = File.ReadAllText(Path.Combine(certificatesFolderPath, "ca.crt"));
+            var certificateChain = File.ReadAllText(Path.Combine(certificatesFolderPath, "client.crt"));
+            var clientKey = File.ReadAllText(Path.Combine(certificatesFolderPath, "client.key"));
 
             return new SslCredentials(rootCertificates, new KeyCertificatePair(certificateChain, clientKey));
         }

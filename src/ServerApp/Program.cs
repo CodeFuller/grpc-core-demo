@@ -19,7 +19,7 @@ namespace ServerApp
             {
                 XmlConfigurator.Configure(new FileInfo("log4net.config"));
 
-                Log.Info("Starting server ...");
+                Log.Info($"Starting server at {ConnectionSettings.HostName}:{ConnectionSettings.PortNumber} ...");
 
                 var server = new Server
                 {
@@ -51,13 +51,15 @@ namespace ServerApp
 
         private static ServerCredentials GetSslServerCredentials()
         {
+            var certificatesFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.HostName);
+
             // https://stackoverflow.com/questions/37714558
-            var rootCertificates = File.ReadAllText(@"c:\temp\certificates\ca.crt");
-            var certificateChain = File.ReadAllText(@"c:\temp\certificates\server.crt");
-            var serverKey = File.ReadAllText(@"c:\temp\certificates\server.key");
+            var rootCertificates = File.ReadAllText(Path.Combine(certificatesFolderPath, "ca.crt"));
+            var certificateChain = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.crt"));
+            var serverKey = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.key"));
             var keyPair = new KeyCertificatePair(certificateChain, serverKey);
 
-            return new SslServerCredentials(new List<KeyCertificatePair> { keyPair }, rootCertificates, SslClientCertificateRequestType.RequestAndRequireAndVerify);
+            return new SslServerCredentials(new List<KeyCertificatePair> { keyPair }, rootCertificates, SslClientCertificateRequestType.DontRequest);
         }
     }
 }
