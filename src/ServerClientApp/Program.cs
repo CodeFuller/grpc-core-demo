@@ -1,14 +1,15 @@
 ﻿using System;
 using System.IO;
+using ClientApp.Shared;
 using log4net;
 using log4net.Config;
 using ServerApp.Shared;
 
-namespace ServerApp
+namespace ServerClientApp
 {
     public static class Program
     {
-        private static readonly ILog Log = LogManager.GetLogger("ServerApp");
+        private static readonly ILog Log = LogManager.GetLogger("ServerClientApp");
 
         public static int Main()
         {
@@ -18,8 +19,7 @@ namespace ServerApp
 
                 ServerHelper.StartServer();
 
-                Log.Info("Press enter for exit");
-                Console.Read();
+                ClientHelper.RunClient();
 
                 Log.Info("Exiting ...");
 
@@ -27,7 +27,7 @@ namespace ServerApp
             }
             catch (Exception e)
             {
-                Log.Error("ServerApp has failed", e);
+                Log.Error("ServerClientApp has failed", e);
 
                 return e.HResult;
             }

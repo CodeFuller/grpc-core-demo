@@ -5,11 +5,11 @@ using Grpc.Core;
 using GrpcCoreDemo.Grpc;
 using log4net;
 
-namespace ServerApp
+namespace ServerApp.Shared
 {
     internal class GreeterService : Greeter.GreeterBase
     {
-        private static readonly ILog Log = LogManager.GetLogger("ServerApp.DemoService");
+        private static readonly ILog Log = LogManager.GetLogger("GreeterService");
 
         private IServerStreamWriter<GreetingNotification> GreetingNotificationsStreamWriter { get; set; }
 

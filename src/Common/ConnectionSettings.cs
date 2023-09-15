@@ -2,7 +2,7 @@
 {
     public static class ConnectionSettings
     {
-        public static string HostName => "localhost";
+        public static string HostName => "IHARM-WIN-BLR.cucorp.controlup.com";
 
         public static int PortNumber => 9999;
 
