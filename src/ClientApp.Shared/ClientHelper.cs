@@ -37,7 +37,17 @@ namespace ClientApp.Shared
 
         private static ChannelCredentials GetClientCredentials()
         {
-            return ConnectionSettings.UseSsl ? GetSslClientCredentials() : ChannelCredentials.Insecure;
+            switch (ConnectionSettings.SecurityType)
+            {
+                case SecurityType.Insecure:
+                    return ChannelCredentials.Insecure;
+
+                case SecurityType.CertificatesFromDisk:
+                    return GetSslClientCredentials();
+
+                default:
+                    throw new NotSupportedException($"Security type is not supported by the client: {ConnectionSettings.SecurityType}");
+            }
         }
 
         private static SslCredentials GetSslClientCredentials()

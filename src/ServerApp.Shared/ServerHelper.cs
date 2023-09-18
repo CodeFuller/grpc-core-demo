@@ -4,6 +4,7 @@ using Common;
 using Grpc.Core;
 using GrpcCoreDemo.Grpc;
 using System.IO;
+using System;
 
 namespace ServerApp.Shared
 {
@@ -26,7 +27,17 @@ namespace ServerApp.Shared
 
         private static ServerCredentials GetServerCredentials()
         {
-            return ConnectionSettings.UseSsl ? GetSslServerCredentials() : ServerCredentials.Insecure;
+            switch (ConnectionSettings.SecurityType)
+            {
+                case SecurityType.Insecure:
+                    return ServerCredentials.Insecure;
+
+                case SecurityType.CertificatesFromDisk:
+                    return GetSslServerCredentials();
+
+                default:
+                    throw new NotSupportedException($"Security type is not supported by the server: {ConnectionSettings.SecurityType}");
+            }
         }
 
         private static ServerCredentials GetSslServerCredentials()

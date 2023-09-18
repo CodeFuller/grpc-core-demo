@@ -6,6 +6,6 @@
 
         public static int PortNumber => 9999;
 
-        public static bool UseSsl => false;
+        public static SecurityType SecurityType => SecurityType.CertificatesFromDisk;
     }
 }
