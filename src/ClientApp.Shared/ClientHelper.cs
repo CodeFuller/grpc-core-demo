@@ -18,6 +18,8 @@ namespace ClientApp.Shared
             Log.Info($"Creating service client for {ConnectionSettings.HostName}:{ConnectionSettings.PortNumber} ...");
             Log.Info($"Client security type: {ConnectionSettings.SecurityType}");
 
+            ConnectionSettings.ConfigureLogging();
+
             var channel = new Channel(ConnectionSettings.HostName, ConnectionSettings.PortNumber, GetClientCredentials());
             var client = new Greeter.GreeterClient(channel);
 

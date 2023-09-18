@@ -43,6 +43,12 @@ L9vu+XxzLPtRa2dlpfUO8jnFejX55m4qmBmTe3GUaXiFQBwRaUGt
 -----END RSA PRIVATE KEY-----
 ";
 
+        public static void ConfigureLogging()
+        {
+            // Environment.SetEnvironmentVariable("GRPC_VERBOSITY", "debug");
+            // Environment.SetEnvironmentVariable("GRPC_TRACE", "handshaker");
+        }
+
         public static AsymmetricCipherKeyPair GetAsymmetricCipherKeyPair()
         {
             using (var reader = new StringReader(PrivateKey))

@@ -16,6 +16,8 @@ namespace ServerApp.Shared
             Log.Info($"Starting server at {ConnectionSettings.HostName}:{ConnectionSettings.PortNumber} ...");
             Log.Info($"Server security type: {ConnectionSettings.SecurityType}");
 
+            ConnectionSettings.ConfigureLogging();
+
             var server = new Server
             {
                 Services = { Greeter.BindService(new GreeterService()) },
