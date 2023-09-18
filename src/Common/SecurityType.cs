@@ -3,7 +3,7 @@
     public enum SecurityType
     {
         Insecure,
-        CertificatesFromDisk,
-        GeneratedCertificates,
+        CertificateFromDisk,
+        GeneratedCertificate,
     }
 }

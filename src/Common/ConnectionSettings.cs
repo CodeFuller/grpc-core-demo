@@ -12,7 +12,7 @@ namespace Common
 
         public static int PortNumber => 9999;
 
-        public static SecurityType SecurityType => SecurityType.GeneratedCertificates;
+        public static SecurityType SecurityType => SecurityType.GeneratedCertificate;
 
         public static string PrivateKey => @"-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEAp5u9/eIbFKjafgxdKzp4jA4jwXTIWantWJO+vKdz+RLh7L0/

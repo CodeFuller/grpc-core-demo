@@ -32,10 +32,10 @@ namespace ServerApp.Shared
                 case SecurityType.Insecure:
                     return ServerCredentials.Insecure;
 
-                case SecurityType.CertificatesFromDisk:
+                case SecurityType.CertificateFromDisk:
                     return GetServerCredentialsForCertificateFromDisk();
 
-                case SecurityType.GeneratedCertificates:
+                case SecurityType.GeneratedCertificate:
                     return GetServerCredentialsForGeneratedCertificate();
 
                 default:

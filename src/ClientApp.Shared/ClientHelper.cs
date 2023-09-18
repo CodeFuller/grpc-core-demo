@@ -43,10 +43,10 @@ namespace ClientApp.Shared
                 case SecurityType.Insecure:
                     return ChannelCredentials.Insecure;
 
-                case SecurityType.CertificatesFromDisk:
+                case SecurityType.CertificateFromDisk:
                     return GetClientCredentialsForCertificateFromDisk();
 
-                case SecurityType.GeneratedCertificates:
+                case SecurityType.GeneratedCertificate:
                     return GetClientCredentialsForGeneratedCertificate();
 
                 default:
@@ -67,9 +67,9 @@ namespace ClientApp.Shared
 
         private static SslCredentials GetClientCredentialsForGeneratedCertificate()
         {
-            var rootCertificate = CertificateManager.GenerateCertificate("CN=cuMonitor, O=ControlUp", ConnectionSettings.HostName, ConnectionSettings.GetAsymmetricCipherKeyPair()).ExportCertificate();
+            var rootCertificate = CertificateManager.GenerateCertificate("CN=cuMonitor, O=ControlUp", ConnectionSettings.HostName, ConnectionSettings.GetAsymmetricCipherKeyPair());
 
-            return new SslCredentials(rootCertificate);
+            return new SslCredentials(rootCertificate.ExportCertificate());
         }
 
         private static async Task ProcessGreetingNotifications(IAsyncStreamReader<GreetingNotification> stream, CancellationToken cancellationToken)
