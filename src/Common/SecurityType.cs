@@ -4,5 +4,6 @@
     {
         Insecure,
         CertificatesFromDisk,
+        GeneratedCertificates,
     }
 }

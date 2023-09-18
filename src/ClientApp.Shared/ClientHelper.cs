@@ -16,6 +16,7 @@ namespace ClientApp.Shared
         public static void RunClient()
         {
             Log.Info($"Creating service client for {ConnectionSettings.HostName}:{ConnectionSettings.PortNumber} ...");
+            Log.Info($"Client security type: {ConnectionSettings.SecurityType}");
 
             var channel = new Channel(ConnectionSettings.HostName, ConnectionSettings.PortNumber, GetClientCredentials());
             var client = new Greeter.GreeterClient(channel);
@@ -43,22 +44,32 @@ namespace ClientApp.Shared
                     return ChannelCredentials.Insecure;
 
                 case SecurityType.CertificatesFromDisk:
-                    return GetSslClientCredentials();
+                    return GetClientCredentialsForCertificateFromDisk();
+
+                case SecurityType.GeneratedCertificates:
+                    return GetClientCredentialsForGeneratedCertificate();
 
                 default:
                     throw new NotSupportedException($"Security type is not supported by the client: {ConnectionSettings.SecurityType}");
             }
         }
 
-        private static SslCredentials GetSslClientCredentials()
+        private static SslCredentials GetClientCredentialsForCertificateFromDisk()
         {
             var certificatesFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.HostName);
 
-            var rootCertificates = File.ReadAllText(Path.Combine(certificatesFolderPath, "ca.crt"));
-            var certificateChain = File.ReadAllText(Path.Combine(certificatesFolderPath, "client.crt"));
-            var clientKey = File.ReadAllText(Path.Combine(certificatesFolderPath, "client.key"));
+            Log.Info($"Reading certificate from folder '{certificatesFolderPath}' ...");
 
-            return new SslCredentials(rootCertificates, new KeyCertificatePair(certificateChain, clientKey));
+            var rootCertificate = File.ReadAllText(Path.Combine(certificatesFolderPath, "ca.crt"));
+
+            return new SslCredentials(rootCertificate);
+        }
+
+        private static SslCredentials GetClientCredentialsForGeneratedCertificate()
+        {
+            var rootCertificate = CertificateManager.GenerateCertificate("CN=cuMonitor, O=ControlUp", ConnectionSettings.HostName, ConnectionSettings.GetAsymmetricCipherKeyPair()).ExportCertificate();
+
+            return new SslCredentials(rootCertificate);
         }
 
         private static async Task ProcessGreetingNotifications(IAsyncStreamReader<GreetingNotification> stream, CancellationToken cancellationToken)

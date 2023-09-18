@@ -21,6 +21,9 @@ namespace ServerClientApp
 
                 ClientHelper.RunClient();
 
+                Log.Info("Press Enter for exit");
+                Console.ReadLine();
+
                 Log.Info("Exiting ...");
 
                 return 0;

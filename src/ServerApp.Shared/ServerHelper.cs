@@ -1,5 +1,4 @@
 ﻿using log4net;
-using System.Collections.Generic;
 using Common;
 using Grpc.Core;
 using GrpcCoreDemo.Grpc;
@@ -15,6 +14,7 @@ namespace ServerApp.Shared
         public static void StartServer()
         {
             Log.Info($"Starting server at {ConnectionSettings.HostName}:{ConnectionSettings.PortNumber} ...");
+            Log.Info($"Server security type: {ConnectionSettings.SecurityType}");
 
             var server = new Server
             {
@@ -33,24 +33,45 @@ namespace ServerApp.Shared
                     return ServerCredentials.Insecure;
 
                 case SecurityType.CertificatesFromDisk:
-                    return GetSslServerCredentials();
+                    return GetServerCredentialsForCertificateFromDisk();
+
+                case SecurityType.GeneratedCertificates:
+                    return GetServerCredentialsForGeneratedCertificate();
 
                 default:
                     throw new NotSupportedException($"Security type is not supported by the server: {ConnectionSettings.SecurityType}");
             }
         }
 
-        private static ServerCredentials GetSslServerCredentials()
+        private static ServerCredentials GetServerCredentialsForCertificateFromDisk()
         {
             var certificatesFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.HostName);
 
-            // https://stackoverflow.com/questions/37714558
-            var rootCertificates = File.ReadAllText(Path.Combine(certificatesFolderPath, "ca.crt"));
-            var certificateChain = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.crt"));
-            var serverKey = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.key"));
-            var keyPair = new KeyCertificatePair(certificateChain, serverKey);
+            Log.Info($"Reading certificates from folder '{certificatesFolderPath}' ...");
 
-            return new SslServerCredentials(new List<KeyCertificatePair> { keyPair }, rootCertificates, SslClientCertificateRequestType.DontRequest);
+            // https://stackoverflow.com/questions/37714558
+            var rootCertificate = File.ReadAllText(Path.Combine(certificatesFolderPath, "ca.crt"));
+            var serverCertificate = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.crt"));
+            var serverKey = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.key"));
+
+            return CreateServerCredentials(rootCertificate, serverCertificate, serverKey);
+        }
+
+        private static ServerCredentials GetServerCredentialsForGeneratedCertificate()
+        {
+            var rootCertificate = CertificateManager.GetMonitorCertificateFromStore();
+
+            var keyPair = ConnectionSettings.GetAsymmetricCipherKeyPair();
+            var serverCertificate = CertificateManager.GenerateCertificate(rootCertificate.Issuer, commonName: ConnectionSettings.HostName, keyPair);
+
+            return CreateServerCredentials(rootCertificate.ExportCertificate(), serverCertificate.ExportCertificate(), ConnectionSettings.PrivateKey);
+        }
+
+        private static ServerCredentials CreateServerCredentials(string rootCertificateContent, string serverCertificateContent, string privateKeyContent)
+        {
+            var keyCertificatePair = new KeyCertificatePair(serverCertificateContent, privateKeyContent);
+
+            return new SslServerCredentials(new[] { keyCertificatePair }, rootCertificateContent, SslClientCertificateRequestType.DontRequest);
         }
     }
 }
