@@ -1,13 +1,13 @@
-﻿using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto.Operators;
+﻿using System;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
-using System;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Common
 {
@@ -17,14 +17,24 @@ namespace Common
 
         public const int DefaultValidityInYears = 5;
 
-        public static X509Certificate2 GenerateCertificate(string issuer, string commonName, AsymmetricCipherKeyPair issuerKeyPair)
+        public static X509Certificate2 GenerateServerCertificate(string issuer, string commonName, AsymmetricCipherKeyPair issuerKeyPair)
+        {
+            return GenerateCertificate(issuer, $"O=CodeFuller, CN={commonName}", issuerKeyPair);
+        }
+
+        public static X509Certificate2 GenerateClientCertificate(string issuer, AsymmetricCipherKeyPair issuerKeyPair)
+        {
+            return GenerateCertificate(issuer, "O=CodeFuller, CN=GrpcCoreDemo", issuerKeyPair);
+        }
+
+        private static X509Certificate2 GenerateCertificate(string issuer, string subject, AsymmetricCipherKeyPair issuerKeyPair)
         {
             var random = new SecureRandom();
             var certificateGenerator = new X509V3CertificateGenerator();
 
             certificateGenerator.SetSerialNumber(new BigInteger("1"));
             certificateGenerator.SetIssuerDN(new X509Name(issuer));
-            certificateGenerator.SetSubjectDN(new X509Name($"CN={commonName}"));
+            certificateGenerator.SetSubjectDN(new X509Name(subject));
             certificateGenerator.SetNotBefore(DateTime.UtcNow.Date);
             certificateGenerator.SetNotAfter(DateTime.UtcNow.Date.AddYears(DefaultValidityInYears));
 
@@ -34,7 +44,7 @@ namespace Common
             var bouncyCert = certificateGenerator.Generate(signatureFactory);
 
             var store = new Pkcs12StoreBuilder().Build();
-            store.SetKeyEntry($"{commonName}_key", new AsymmetricKeyEntry(issuerKeyPair.Private), new[] { new X509CertificateEntry(bouncyCert) });
+            store.SetKeyEntry("key", new AsymmetricKeyEntry(issuerKeyPair.Private), new[] { new X509CertificateEntry(bouncyCert) });
             var password = Guid.NewGuid().ToString();
 
             using (var ms = new MemoryStream())

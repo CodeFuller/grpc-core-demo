@@ -69,9 +69,13 @@ namespace ClientApp.Shared
 
         private static SslCredentials GetClientCredentialsForGeneratedCertificate()
         {
-            var rootCertificate = CertificateManager.GenerateCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.HostName, ConnectionSettings.GetAsymmetricCipherKeyPair());
+            var certificate = ConnectionSettings.CertificateForClient;
+            if (String.IsNullOrEmpty(certificate))
+            {
+                throw new InvalidOperationException("Certificate for client was not initialized");
+            }
 
-            return new SslCredentials(rootCertificate.ExportCertificate());
+            return new SslCredentials(certificate);
         }
 
         private static async Task ProcessGreetingNotifications(IAsyncStreamReader<GreetingNotification> stream, CancellationToken cancellationToken)

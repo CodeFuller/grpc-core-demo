@@ -4,6 +4,10 @@ using Grpc.Core;
 using GrpcCoreDemo.Grpc;
 using System.IO;
 using System;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Security;
 
 namespace ServerApp.Shared
 {
@@ -60,10 +64,34 @@ namespace ServerApp.Shared
 
         private static ServerCredentials GetServerCredentialsForGeneratedCertificate()
         {
-            var keyPair = ConnectionSettings.GetAsymmetricCipherKeyPair();
-            var serverCertificate = CertificateManager.GenerateCertificate(ConnectionSettings.CertificateIssuer, commonName: ConnectionSettings.HostName, keyPair);
+            var keyPair = GenerateKeyPair();
+            var serverCertificate = CertificateManager.GenerateServerCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.HostName, keyPair);
 
-            return CreateServerCredentials(null, serverCertificate.ExportCertificate(), ConnectionSettings.PrivateKey);
+            ConnectionSettings.CertificateForClient = CertificateManager.GenerateClientCertificate(ConnectionSettings.CertificateIssuer, keyPair).ExportCertificate();
+
+            return CreateServerCredentials(null, serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
+        }
+
+        private static AsymmetricCipherKeyPair GenerateKeyPair()
+        {
+            var random = new SecureRandom();
+
+            var keyGenerationParameters = new KeyGenerationParameters(random, 2048);
+            var keyPairGenerator = new RsaKeyPairGenerator();
+            keyPairGenerator.Init(keyGenerationParameters);
+
+            return keyPairGenerator.GenerateKeyPair();
+        }
+
+        private static string ExportPrivateKey(AsymmetricCipherKeyPair keyPair)
+        {
+            using (TextWriter textWriter = new StringWriter())
+            {
+                var pemWriter = new PemWriter(textWriter);
+                pemWriter.WriteObject(keyPair.Private);
+
+                return textWriter.ToString();
+            }
         }
 
         private static ServerCredentials CreateServerCredentials(string rootCertificateContent, string serverCertificateContent, string privateKeyContent)
