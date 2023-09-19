@@ -52,21 +52,18 @@ namespace ServerApp.Shared
             Log.Info($"Reading certificates from folder '{certificatesFolderPath}' ...");
 
             // https://stackoverflow.com/questions/37714558
-            var rootCertificate = File.ReadAllText(Path.Combine(certificatesFolderPath, "ca.crt"));
             var serverCertificate = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.crt"));
             var serverKey = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.key"));
 
-            return CreateServerCredentials(rootCertificate, serverCertificate, serverKey);
+            return CreateServerCredentials(null, serverCertificate, serverKey);
         }
 
         private static ServerCredentials GetServerCredentialsForGeneratedCertificate()
         {
-            var rootCertificate = CertificateManager.GetMonitorCertificateFromStore();
-
             var keyPair = ConnectionSettings.GetAsymmetricCipherKeyPair();
-            var serverCertificate = CertificateManager.GenerateCertificate(rootCertificate.Issuer, commonName: ConnectionSettings.HostName, keyPair);
+            var serverCertificate = CertificateManager.GenerateCertificate(ConnectionSettings.CertificateIssuer, commonName: ConnectionSettings.HostName, keyPair);
 
-            return CreateServerCredentials(rootCertificate.ExportCertificate(), serverCertificate.ExportCertificate(), ConnectionSettings.PrivateKey);
+            return CreateServerCredentials(null, serverCertificate.ExportCertificate(), ConnectionSettings.PrivateKey);
         }
 
         private static ServerCredentials CreateServerCredentials(string rootCertificateContent, string serverCertificateContent, string privateKeyContent)

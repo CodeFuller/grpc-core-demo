@@ -1,8 +1,8 @@
-﻿using Org.BouncyCastle.Crypto;
+﻿using System.IO;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
-using Org.BouncyCastle.Security;
-using System.IO;
 using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Security;
 
 namespace Common
 {
@@ -13,6 +13,8 @@ namespace Common
         public static int PortNumber => 9999;
 
         public static SecurityType SecurityType => SecurityType.GeneratedCertificate;
+
+        public static string CertificateIssuer => "CN=GrpcCoreDemo, O=CodeFuller";
 
         public static string PrivateKey => @"-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEAp5u9/eIbFKjafgxdKzp4jA4jwXTIWantWJO+vKdz+RLh7L0/
@@ -45,8 +47,8 @@ L9vu+XxzLPtRa2dlpfUO8jnFejX55m4qmBmTe3GUaXiFQBwRaUGt
 
         public static void ConfigureLogging()
         {
-            // Environment.SetEnvironmentVariable("GRPC_VERBOSITY", "debug");
-            // Environment.SetEnvironmentVariable("GRPC_TRACE", "handshaker");
+            // System.Environment.SetEnvironmentVariable("GRPC_VERBOSITY", "debug");
+            // System.Environment.SetEnvironmentVariable("GRPC_TRACE", "handshaker");
         }
 
         public static AsymmetricCipherKeyPair GetAsymmetricCipherKeyPair()

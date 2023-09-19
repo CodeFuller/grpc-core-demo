@@ -69,7 +69,7 @@ namespace ClientApp.Shared
 
         private static SslCredentials GetClientCredentialsForGeneratedCertificate()
         {
-            var rootCertificate = CertificateManager.GenerateCertificate("CN=cuMonitor, O=ControlUp", ConnectionSettings.HostName, ConnectionSettings.GetAsymmetricCipherKeyPair());
+            var rootCertificate = CertificateManager.GenerateCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.HostName, ConnectionSettings.GetAsymmetricCipherKeyPair());
 
             return new SslCredentials(rootCertificate.ExportCertificate());
         }
