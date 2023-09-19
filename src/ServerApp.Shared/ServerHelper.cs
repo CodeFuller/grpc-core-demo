@@ -65,9 +65,10 @@ namespace ServerApp.Shared
         private static ServerCredentials GetServerCredentialsForGeneratedCertificate()
         {
             var keyPair = GenerateKeyPair();
-            var serverCertificate = CertificateManager.GenerateServerCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.HostName, keyPair);
+            var serverCertificate = CertificateManager.GenerateServerCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ServerCertificateSubject, keyPair);
 
-            ConnectionSettings.CertificateForClient = CertificateManager.GenerateClientCertificate(ConnectionSettings.CertificateIssuer, keyPair).ExportCertificate();
+            var certificateForClient = CertificateManager.GenerateClientCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ClientCertificateSubject, keyPair).ExportCertificate();
+            File.WriteAllText(ConnectionSettings.CertificateForClientFileName, certificateForClient);
 
             return CreateServerCredentials(null, serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
         }

@@ -1,4 +1,6 @@
-﻿namespace Common
+﻿using System.Security.AccessControl;
+
+namespace Common
 {
     public static class ConnectionSettings
     {
@@ -10,7 +12,11 @@
 
         public static string CertificateIssuer => "O=CodeFuller, CN=GrpcCoreDemo";
 
-        public static string CertificateForClient { get; set; }
+        public static string ServerCertificateSubject => $"O=CodeFuller, CN={HostName}";
+
+        public static string ClientCertificateSubject => "O=CodeFuller, CN=GrpcCoreDemo";
+
+        public static string CertificateForClientFileName => "certificate-for-client.crt";
 
         public static void ConfigureLogging()
         {

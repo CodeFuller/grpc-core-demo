@@ -69,11 +69,15 @@ namespace ClientApp.Shared
 
         private static SslCredentials GetClientCredentialsForGeneratedCertificate()
         {
-            var certificate = ConnectionSettings.CertificateForClient;
-            if (String.IsNullOrEmpty(certificate))
+            var certificateForClientFileName = ConnectionSettings.CertificateForClientFileName;
+
+            if (!File.Exists(ConnectionSettings.CertificateForClientFileName))
             {
-                throw new InvalidOperationException("Certificate for client was not initialized");
+                throw new InvalidOperationException($"Certificate for client is missing - '{certificateForClientFileName}'");
             }
+
+            Log.Info($"Loading client certificate from '{certificateForClientFileName}' ...");
+            var certificate = File.ReadAllText(certificateForClientFileName);
 
             return new SslCredentials(certificate);
         }

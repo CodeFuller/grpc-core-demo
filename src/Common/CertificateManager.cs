@@ -17,14 +17,14 @@ namespace Common
 
         public const int DefaultValidityInYears = 5;
 
-        public static X509Certificate2 GenerateServerCertificate(string issuer, string commonName, AsymmetricCipherKeyPair issuerKeyPair)
+        public static X509Certificate2 GenerateServerCertificate(string issuer, string subject, AsymmetricCipherKeyPair issuerKeyPair)
         {
-            return GenerateCertificate(issuer, $"O=CodeFuller, CN={commonName}", issuerKeyPair);
+            return GenerateCertificate(issuer, subject, issuerKeyPair);
         }
 
-        public static X509Certificate2 GenerateClientCertificate(string issuer, AsymmetricCipherKeyPair issuerKeyPair)
+        public static X509Certificate2 GenerateClientCertificate(string issuer, string subject, AsymmetricCipherKeyPair issuerKeyPair)
         {
-            return GenerateCertificate(issuer, "O=CodeFuller, CN=GrpcCoreDemo", issuerKeyPair);
+            return GenerateCertificate(issuer, subject, issuerKeyPair);
         }
 
         private static X509Certificate2 GenerateCertificate(string issuer, string subject, AsymmetricCipherKeyPair issuerKeyPair)
