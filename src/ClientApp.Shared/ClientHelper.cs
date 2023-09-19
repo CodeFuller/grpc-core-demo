@@ -15,12 +15,12 @@ namespace ClientApp.Shared
 
         public static void RunClient()
         {
-            Log.Info($"Creating service client for {ConnectionSettings.HostName}:{ConnectionSettings.PortNumber} ...");
+            Log.Info($"Creating service client for {ConnectionSettings.ServerHostName}:{ConnectionSettings.ServerPortNumber} ...");
             Log.Info($"Client security type: {ConnectionSettings.SecurityType}");
 
             ConnectionSettings.ConfigureLogging();
 
-            var channel = new Channel(ConnectionSettings.HostName, ConnectionSettings.PortNumber, GetClientCredentials());
+            var channel = new Channel(ConnectionSettings.ServerHostName, ConnectionSettings.ServerPortNumber, GetClientCredentials());
             var client = new Greeter.GreeterClient(channel);
 
             Log.Info("Subscribing to greeting notifications ...");
@@ -58,7 +58,7 @@ namespace ClientApp.Shared
 
         private static SslCredentials GetClientCredentialsForCertificateFromDisk()
         {
-            var certificatesFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.HostName);
+            var certificatesFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.ServerHostName);
 
             Log.Info($"Reading certificate from folder '{certificatesFolderPath}' ...");
 

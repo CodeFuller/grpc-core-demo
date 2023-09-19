@@ -4,15 +4,15 @@ namespace Common
 {
     public static class ConnectionSettings
     {
-        public static string HostName => "IHARM-WIN-BLR.cucorp.controlup.com";
+        public static string ServerHostName => "WIN10DEV21.smartx.dom";
 
-        public static int PortNumber => 9999;
+        public static int ServerPortNumber => 9999;
 
         public static SecurityType SecurityType => SecurityType.GeneratedCertificate;
 
         public static string CertificateIssuer => "O=CodeFuller, CN=GrpcCoreDemo";
 
-        public static string ServerCertificateSubject => $"O=CodeFuller, CN={HostName}";
+        public static string ServerCertificateSubject => $"O=CodeFuller, CN={ServerHostName}";
 
         public static string ClientCertificateSubject => "O=CodeFuller, CN=GrpcCoreDemo";
 

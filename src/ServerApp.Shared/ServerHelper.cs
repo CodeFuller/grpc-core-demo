@@ -17,7 +17,7 @@ namespace ServerApp.Shared
 
         public static void StartServer()
         {
-            Log.Info($"Starting server at {ConnectionSettings.HostName}:{ConnectionSettings.PortNumber} ...");
+            Log.Info($"Starting server at {ConnectionSettings.ServerHostName}:{ConnectionSettings.ServerPortNumber} ...");
             Log.Info($"Server security type: {ConnectionSettings.SecurityType}");
 
             ConnectionSettings.ConfigureLogging();
@@ -25,7 +25,7 @@ namespace ServerApp.Shared
             var server = new Server
             {
                 Services = { Greeter.BindService(new GreeterService()) },
-                Ports = { new ServerPort(ConnectionSettings.HostName, ConnectionSettings.PortNumber, GetServerCredentials()) }
+                Ports = { new ServerPort(ConnectionSettings.ServerHostName, ConnectionSettings.ServerPortNumber, GetServerCredentials()) }
             };
 
             server.Start();
@@ -51,7 +51,7 @@ namespace ServerApp.Shared
 
         private static ServerCredentials GetServerCredentialsForCertificateFromDisk()
         {
-            var certificatesFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.HostName);
+            var certificatesFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.ServerHostName);
 
             Log.Info($"Reading certificates from folder '{certificatesFolderPath}' ...");
 
