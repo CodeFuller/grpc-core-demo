@@ -4,7 +4,7 @@ namespace Common
 {
     public static class ConnectionSettings
     {
-        public static string ServerHostName => "WIN10DEV21.smartx.dom";
+        public static string ServerHostName => "IHARM-WIN-BLR.cucorp.controlup.com";
 
         public static int ServerPortNumber => 9999;
 
