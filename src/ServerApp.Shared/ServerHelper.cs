@@ -42,8 +42,10 @@ namespace ServerApp.Shared
                     return GetServerCredentialsForCertificateFromDisk();
 
                 case SecurityType.GeneratedCertificate:
-                case SecurityType.CertificateFromServicePointManager:
                     return GetServerCredentialsForGeneratedCertificate();
+
+                case SecurityType.CertificateFromServicePointManager:
+                    return GetServerCredentialsForCertificateFromServicePointManager();
 
                 default:
                     throw new NotSupportedException($"Security type is not supported by the server: {ConnectionSettings.SecurityType}");
@@ -70,6 +72,14 @@ namespace ServerApp.Shared
 
             var certificateForClient = CertificateManager.GenerateClientCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ClientCertificateSubject, keyPair).ExportCertificate();
             File.WriteAllText(ConnectionSettings.CertificateForClientFileName, certificateForClient);
+
+            return CreateServerCredentials(serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
+        }
+
+        private static ServerCredentials GetServerCredentialsForCertificateFromServicePointManager()
+        {
+            var keyPair = GenerateKeyPair();
+            var serverCertificate = CertificateManager.GenerateServerCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ServerCertificateSubject, keyPair);
 
             return CreateServerCredentials(serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
         }
