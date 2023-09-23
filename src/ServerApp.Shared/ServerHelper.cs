@@ -60,7 +60,7 @@ namespace ServerApp.Shared
             var serverCertificate = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.crt"));
             var serverKey = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.key"));
 
-            return CreateServerCredentials(null, serverCertificate, serverKey);
+            return CreateServerCredentials(serverCertificate, serverKey);
         }
 
         private static ServerCredentials GetServerCredentialsForGeneratedCertificate()
@@ -71,7 +71,7 @@ namespace ServerApp.Shared
             var certificateForClient = CertificateManager.GenerateClientCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ClientCertificateSubject, keyPair).ExportCertificate();
             File.WriteAllText(ConnectionSettings.CertificateForClientFileName, certificateForClient);
 
-            return CreateServerCredentials(null, serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
+            return CreateServerCredentials(serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
         }
 
         private static AsymmetricCipherKeyPair GenerateKeyPair()
@@ -96,11 +96,11 @@ namespace ServerApp.Shared
             }
         }
 
-        private static ServerCredentials CreateServerCredentials(string rootCertificateContent, string serverCertificateContent, string privateKeyContent)
+        private static ServerCredentials CreateServerCredentials(string serverCertificateContent, string privateKeyContent)
         {
             var keyCertificatePair = new KeyCertificatePair(serverCertificateContent, privateKeyContent);
 
-            return new SslServerCredentials(new[] { keyCertificatePair }, rootCertificateContent, SslClientCertificateRequestType.DontRequest);
+            return new SslServerCredentials(new[] { keyCertificatePair }, null, SslClientCertificateRequestType.DontRequest);
         }
     }
 }
