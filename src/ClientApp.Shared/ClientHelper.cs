@@ -6,6 +6,9 @@ using Common;
 using log4net;
 using System.IO;
 using System.Threading.Tasks;
+using System.Net;
+using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ClientApp.Shared
 {
@@ -51,6 +54,9 @@ namespace ClientApp.Shared
                 case SecurityType.GeneratedCertificate:
                     return GetClientCredentialsForGeneratedCertificate();
 
+                case SecurityType.CertificateFromServicePointManager:
+                    return GetClientCredentialsForCertificateFromServicePointManager();
+
                 default:
                     throw new NotSupportedException($"Security type is not supported by the client: {ConnectionSettings.SecurityType}");
             }
@@ -80,6 +86,43 @@ namespace ClientApp.Shared
             var certificate = File.ReadAllText(certificateForClientFileName);
 
             return new SslCredentials(certificate);
+        }
+
+        private static SslCredentials GetClientCredentialsForCertificateFromServicePointManager()
+        {
+            var serverAddress = new Uri($"https://{ConnectionSettings.ServerHostName}:{ConnectionSettings.ServerPortNumber}");
+
+            Log.Info($"Getting server certificate from {serverAddress} ...");
+
+            using (var httpClientHandler = new HttpClientHandler())
+            {
+                httpClientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
+                httpClientHandler.ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) => true;
+
+                var client = new HttpClient(httpClientHandler);
+                try
+                {
+                    using (client.GetAsync(serverAddress).GetAwaiter().GetResult())
+                    {
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    // The request is expected to fail.
+                }
+            }
+
+            var servicePoint = ServicePointManager.FindServicePoint(serverAddress);
+            var certificate = servicePoint.Certificate;
+
+            if (certificate == null)
+            {
+                throw new InvalidOperationException("Failed to get server certificate");
+            }
+
+            Log.Info("Got server certificate successfully");
+
+            return new SslCredentials((new X509Certificate2(certificate)).ExportCertificate());
         }
 
         private static async Task ProcessGreetingNotifications(IAsyncStreamReader<GreetingNotification> stream, CancellationToken cancellationToken)

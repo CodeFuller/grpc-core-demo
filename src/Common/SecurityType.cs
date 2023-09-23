@@ -5,5 +5,6 @@
         Insecure,
         CertificateFromDisk,
         GeneratedCertificate,
+        CertificateFromServicePointManager,
     }
 }

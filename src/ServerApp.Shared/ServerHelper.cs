@@ -42,6 +42,7 @@ namespace ServerApp.Shared
                     return GetServerCredentialsForCertificateFromDisk();
 
                 case SecurityType.GeneratedCertificate:
+                case SecurityType.CertificateFromServicePointManager:
                     return GetServerCredentialsForGeneratedCertificate();
 
                 default:

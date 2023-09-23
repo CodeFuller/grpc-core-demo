@@ -8,7 +8,7 @@ namespace Common
 
         public static int ServerPortNumber => 9999;
 
-        public static SecurityType SecurityType => SecurityType.GeneratedCertificate;
+        public static SecurityType SecurityType => SecurityType.CertificateFromServicePointManager;
 
         public static string CertificateIssuer => "O=CodeFuller, CN=GrpcCoreDemo";
 
