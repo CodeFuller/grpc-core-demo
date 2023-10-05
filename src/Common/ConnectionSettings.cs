@@ -1,6 +1,4 @@
-﻿using System.Security.AccessControl;
-
-namespace Common
+﻿namespace Common
 {
     public static class ConnectionSettings
     {
@@ -8,7 +6,7 @@ namespace Common
 
         public static int ServerPortNumber => 9999;
 
-        public static SecurityType SecurityType => SecurityType.CertificateFromServicePointManager;
+        public static SecurityType SecurityType => SecurityType.GeneratedCertificateDeliveredViaHttp;
 
         public static string CertificateIssuer => "O=CodeFuller, CN=GrpcCoreDemo";
 

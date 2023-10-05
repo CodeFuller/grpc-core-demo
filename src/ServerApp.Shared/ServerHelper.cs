@@ -41,11 +41,11 @@ namespace ServerApp.Shared
                 case SecurityType.CertificateFromDisk:
                     return GetServerCredentialsForCertificateFromDisk();
 
-                case SecurityType.GeneratedCertificate:
-                    return GetServerCredentialsForGeneratedCertificate();
+                case SecurityType.GeneratedCertificateDeliveredViaFilesystem:
+                    return GetServerCredentialsForGeneratedCertificateDeliveredViaFilesystem();
 
-                case SecurityType.CertificateFromServicePointManager:
-                    return GetServerCredentialsForCertificateFromServicePointManager();
+                case SecurityType.GeneratedCertificateDeliveredViaHttp:
+                    return GetServerCredentialsForGeneratedCertificateDeliveredViaHttp();
 
                 default:
                     throw new NotSupportedException($"Security type is not supported by the server: {ConnectionSettings.SecurityType}");
@@ -65,7 +65,7 @@ namespace ServerApp.Shared
             return CreateServerCredentials(serverCertificate, serverKey);
         }
 
-        private static ServerCredentials GetServerCredentialsForGeneratedCertificate()
+        private static ServerCredentials GetServerCredentialsForGeneratedCertificateDeliveredViaFilesystem()
         {
             var keyPair = GenerateKeyPair();
             var serverCertificate = CertificateManager.GenerateServerCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ServerCertificateSubject, keyPair);
@@ -76,7 +76,7 @@ namespace ServerApp.Shared
             return CreateServerCredentials(serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
         }
 
-        private static ServerCredentials GetServerCredentialsForCertificateFromServicePointManager()
+        private static ServerCredentials GetServerCredentialsForGeneratedCertificateDeliveredViaHttp()
         {
             var keyPair = GenerateKeyPair();
             var serverCertificate = CertificateManager.GenerateServerCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ServerCertificateSubject, keyPair);

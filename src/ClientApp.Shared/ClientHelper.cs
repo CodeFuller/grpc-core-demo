@@ -6,9 +6,7 @@ using Common;
 using log4net;
 using System.IO;
 using System.Threading.Tasks;
-using System.Net;
 using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
 
 namespace ClientApp.Shared
 {
@@ -51,11 +49,11 @@ namespace ClientApp.Shared
                 case SecurityType.CertificateFromDisk:
                     return GetClientCredentialsForCertificateFromDisk();
 
-                case SecurityType.GeneratedCertificate:
-                    return GetClientCredentialsForGeneratedCertificate();
+                case SecurityType.GeneratedCertificateDeliveredViaFilesystem:
+                    return GetClientCredentialsForGeneratedCertificateDeliveredViaFilesystem();
 
-                case SecurityType.CertificateFromServicePointManager:
-                    return GetClientCredentialsForCertificateFromServicePointManager();
+                case SecurityType.GeneratedCertificateDeliveredViaHttp:
+                    return GetClientCredentialsForGeneratedCertificateDeliveredViaHttp();
 
                 default:
                     throw new NotSupportedException($"Security type is not supported by the client: {ConnectionSettings.SecurityType}");
@@ -73,7 +71,7 @@ namespace ClientApp.Shared
             return new SslCredentials(rootCertificate);
         }
 
-        private static SslCredentials GetClientCredentialsForGeneratedCertificate()
+        private static SslCredentials GetClientCredentialsForGeneratedCertificateDeliveredViaFilesystem()
         {
             var certificateForClientFileName = ConnectionSettings.CertificateForClientFileName;
 
@@ -88,16 +86,24 @@ namespace ClientApp.Shared
             return new SslCredentials(certificate);
         }
 
-        private static SslCredentials GetClientCredentialsForCertificateFromServicePointManager()
+        private static SslCredentials GetClientCredentialsForGeneratedCertificateDeliveredViaHttp()
         {
             var serverAddress = new Uri($"https://{ConnectionSettings.ServerHostName}:{ConnectionSettings.ServerPortNumber}");
 
             Log.Info($"Getting server certificate from {serverAddress} ...");
 
+            string certificateContent = null;
+
             using (var httpClientHandler = new HttpClientHandler())
             {
                 httpClientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
-                httpClientHandler.ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) => true;
+                httpClientHandler.ServerCertificateCustomValidationCallback = (httpRequestMessage, certificate, cetChain, policyErrors) =>
+                {
+                    // We extract certificate content within a callback because original certificate is disposed after callback is called.
+                    certificateContent = certificate?.ExportCertificate();
+
+                    return true;
+                };
 
                 var client = new HttpClient(httpClientHandler);
                 try
@@ -112,17 +118,14 @@ namespace ClientApp.Shared
                 }
             }
 
-            var servicePoint = ServicePointManager.FindServicePoint(serverAddress);
-            var certificate = servicePoint.Certificate;
-
-            if (certificate == null)
+            if (certificateContent == null)
             {
                 throw new InvalidOperationException("Failed to get server certificate");
             }
 
             Log.Info("Got server certificate successfully");
 
-            return new SslCredentials((new X509Certificate2(certificate)).ExportCertificate());
+            return new SslCredentials(certificateContent);
         }
 
         private static async Task ProcessGreetingNotifications(IAsyncStreamReader<GreetingNotification> stream, CancellationToken cancellationToken)

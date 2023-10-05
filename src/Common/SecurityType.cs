@@ -4,7 +4,7 @@
     {
         Insecure,
         CertificateFromDisk,
-        GeneratedCertificate,
-        CertificateFromServicePointManager,
+        GeneratedCertificateDeliveredViaFilesystem,
+        GeneratedCertificateDeliveredViaHttp,
     }
 }
