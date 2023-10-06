@@ -7,6 +7,7 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Common
@@ -32,7 +33,8 @@ namespace Common
             var random = new SecureRandom();
             var certificateGenerator = new X509V3CertificateGenerator();
 
-            certificateGenerator.SetSerialNumber(new BigInteger("1"));
+            var serialNumber = BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(Int64.MaxValue), random);
+            certificateGenerator.SetSerialNumber(serialNumber);
             certificateGenerator.SetIssuerDN(new X509Name(issuer));
             certificateGenerator.SetSubjectDN(new X509Name(subject));
             certificateGenerator.SetNotBefore(DateTime.UtcNow.Date);
