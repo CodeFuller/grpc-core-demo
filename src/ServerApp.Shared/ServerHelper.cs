@@ -39,6 +39,7 @@ namespace ServerApp.Shared
                     return ServerCredentials.Insecure;
 
                 case SecurityType.CertificateFromDisk:
+                case SecurityType.CertificateFromDiskDeliveredViaHttp:
                     return GetServerCredentialsForCertificateFromDisk();
 
                 case SecurityType.GeneratedCertificateDeliveredViaFilesystem:

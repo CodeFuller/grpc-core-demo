@@ -4,6 +4,7 @@
     {
         Insecure,
         CertificateFromDisk,
+        CertificateFromDiskDeliveredViaHttp,
         GeneratedCertificateDeliveredViaFilesystem,
         GeneratedCertificateDeliveredViaHttp,
     }

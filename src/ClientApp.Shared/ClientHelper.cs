@@ -51,11 +51,14 @@ namespace ClientApp.Shared
                 case SecurityType.CertificateFromDisk:
                     return GetClientCredentialsForCertificateFromDisk();
 
+                case SecurityType.CertificateFromDiskDeliveredViaHttp:
+                    return GetClientCredentialsForCertificateDeliveredViaHttp();
+
                 case SecurityType.GeneratedCertificateDeliveredViaFilesystem:
                     return GetClientCredentialsForGeneratedCertificateDeliveredViaFilesystem();
 
                 case SecurityType.GeneratedCertificateDeliveredViaHttp:
-                    return GetClientCredentialsForGeneratedCertificateDeliveredViaHttp();
+                    return GetClientCredentialsForCertificateDeliveredViaHttp();
 
                 default:
                     throw new NotSupportedException($"Security type is not supported by the client: {ConnectionSettings.SecurityType}");
@@ -88,7 +91,7 @@ namespace ClientApp.Shared
             return new SslCredentials(certificate);
         }
 
-        private static SslCredentials GetClientCredentialsForGeneratedCertificateDeliveredViaHttp()
+        private static SslCredentials GetClientCredentialsForCertificateDeliveredViaHttp()
         {
             var serverAddress = new Uri($"https://{ConnectionSettings.ServerHostName}:{ConnectionSettings.ServerPortNumber}");
 
