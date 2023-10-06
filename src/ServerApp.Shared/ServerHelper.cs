@@ -4,6 +4,7 @@ using Grpc.Core;
 using GrpcCoreDemo.Grpc;
 using System.IO;
 using System;
+using System.Security.Cryptography.X509Certificates;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.OpenSsl;
@@ -39,8 +40,10 @@ namespace ServerApp.Shared
                     return ServerCredentials.Insecure;
 
                 case SecurityType.CertificateFromDisk:
-                case SecurityType.CertificateFromDiskDeliveredViaHttp:
                     return GetServerCredentialsForCertificateFromDisk();
+
+                case SecurityType.CertificateFromPfxOnDiskDeliveredViaHttp:
+                    return GetServerCredentialsForCertificateFromPfxOnDisk();
 
                 case SecurityType.GeneratedCertificateDeliveredViaHttp:
                     return GetServerCredentialsForGeneratedCertificateDeliveredViaHttp();
@@ -55,15 +58,25 @@ namespace ServerApp.Shared
 
         private static ServerCredentials GetServerCredentialsForCertificateFromDisk()
         {
-            var certificatesFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.ServerHostName);
+            var certificateFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.ServerHostName);
 
-            Log.Info($"Reading certificates from folder '{certificatesFolderPath}' ...");
+            Log.Info($"Reading certificate from folder '{certificateFolderPath}' ...");
 
             // https://stackoverflow.com/questions/37714558
-            var serverCertificate = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.crt"));
-            var serverKey = File.ReadAllText(Path.Combine(certificatesFolderPath, "server.key"));
+            var serverCertificate = File.ReadAllText(Path.Combine(certificateFolderPath, "server.crt"));
+            var serverKey = File.ReadAllText(Path.Combine(certificateFolderPath, "server.key"));
 
             return CreateServerCredentials(serverCertificate, serverKey);
+        }
+
+        private static ServerCredentials GetServerCredentialsForCertificateFromPfxOnDisk()
+        {
+            var certificateFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.ServerHostName);
+
+            Log.Info($"Reading certificate from folder '{certificateFolderPath}' ...");
+
+            var certificate = new X509Certificate2(Path.Combine(certificateFolderPath, "server.pfx"), String.Empty, X509KeyStorageFlags.Exportable);
+            return CreateServerCredentials(certificate.ExportCertificate(), certificate.ExportPrivateRsaKey());
         }
 
         private static ServerCredentials GetServerCredentialsForGeneratedCertificateDeliveredViaHttp()

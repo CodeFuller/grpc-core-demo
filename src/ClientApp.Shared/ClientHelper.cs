@@ -51,7 +51,7 @@ namespace ClientApp.Shared
                 case SecurityType.CertificateFromDisk:
                     return GetClientCredentialsForCertificateFromDisk();
 
-                case SecurityType.CertificateFromDiskDeliveredViaHttp:
+                case SecurityType.CertificateFromPfxOnDiskDeliveredViaHttp:
                 case SecurityType.GeneratedCertificateDeliveredViaHttp:
                     return GetClientCredentialsForCertificateDeliveredViaHttp();
 
@@ -65,11 +65,11 @@ namespace ClientApp.Shared
 
         private static SslCredentials GetClientCredentialsForCertificateFromDisk()
         {
-            var certificatesFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.ServerHostName);
+            var certificateFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.ServerHostName);
 
-            Log.Info($"Reading certificate from folder '{certificatesFolderPath}' ...");
+            Log.Info($"Reading certificate from folder '{certificateFolderPath}' ...");
 
-            var rootCertificate = File.ReadAllText(Path.Combine(certificatesFolderPath, "ca.crt"));
+            var rootCertificate = File.ReadAllText(Path.Combine(certificateFolderPath, "ca.crt"));
 
             return new SslCredentials(rootCertificate);
         }

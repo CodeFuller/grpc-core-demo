@@ -1,6 +1,10 @@
-﻿using System;
+﻿using Org.BouncyCastle.Security;
+using System;
+using System.IO;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Org.BouncyCastle.OpenSsl;
 
 namespace Common
 {
@@ -31,6 +35,21 @@ namespace Common
             builder.AppendLine($"-----END {entityName}-----");
 
             return builder.ToString();
+        }
+
+        public static string ExportPrivateRsaKey(this X509Certificate2 certificate)
+        {
+            var privateKey = (RSACryptoServiceProvider)certificate.PrivateKey;
+            var rsaParameters = privateKey.ExportParameters(true);
+            var keyPair = DotNetUtilities.GetRsaKeyPair(rsaParameters);
+
+            using (TextWriter textWriter = new StringWriter())
+            {
+                var pemWriter = new PemWriter(textWriter);
+                pemWriter.WriteObject(keyPair.Private);
+
+                return textWriter.ToString();
+            }
         }
     }
 }
