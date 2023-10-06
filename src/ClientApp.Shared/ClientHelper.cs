@@ -52,13 +52,11 @@ namespace ClientApp.Shared
                     return GetClientCredentialsForCertificateFromDisk();
 
                 case SecurityType.CertificateFromDiskDeliveredViaHttp:
+                case SecurityType.GeneratedCertificateDeliveredViaHttp:
                     return GetClientCredentialsForCertificateDeliveredViaHttp();
 
                 case SecurityType.GeneratedCertificateDeliveredViaFilesystem:
                     return GetClientCredentialsForGeneratedCertificateDeliveredViaFilesystem();
-
-                case SecurityType.GeneratedCertificateDeliveredViaHttp:
-                    return GetClientCredentialsForCertificateDeliveredViaHttp();
 
                 default:
                     throw new NotSupportedException($"Security type is not supported by the client: {ConnectionSettings.SecurityType}");

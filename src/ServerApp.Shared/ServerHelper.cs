@@ -42,11 +42,11 @@ namespace ServerApp.Shared
                 case SecurityType.CertificateFromDiskDeliveredViaHttp:
                     return GetServerCredentialsForCertificateFromDisk();
 
-                case SecurityType.GeneratedCertificateDeliveredViaFilesystem:
-                    return GetServerCredentialsForGeneratedCertificateDeliveredViaFilesystem();
-
                 case SecurityType.GeneratedCertificateDeliveredViaHttp:
                     return GetServerCredentialsForGeneratedCertificateDeliveredViaHttp();
+
+                case SecurityType.GeneratedCertificateDeliveredViaFilesystem:
+                    return GetServerCredentialsForGeneratedCertificateDeliveredViaFilesystem();
 
                 default:
                     throw new NotSupportedException($"Security type is not supported by the server: {ConnectionSettings.SecurityType}");
@@ -66,6 +66,14 @@ namespace ServerApp.Shared
             return CreateServerCredentials(serverCertificate, serverKey);
         }
 
+        private static ServerCredentials GetServerCredentialsForGeneratedCertificateDeliveredViaHttp()
+        {
+            var keyPair = GenerateKeyPair();
+            var serverCertificate = CertificateManager.GenerateServerCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ServerCertificateSubject, keyPair);
+
+            return CreateServerCredentials(serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
+        }
+
         private static ServerCredentials GetServerCredentialsForGeneratedCertificateDeliveredViaFilesystem()
         {
             var keyPair = GenerateKeyPair();
@@ -73,14 +81,6 @@ namespace ServerApp.Shared
 
             var certificateForClient = CertificateManager.GenerateClientCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ClientCertificateSubject, keyPair).ExportCertificate();
             File.WriteAllText(ConnectionSettings.CertificateForClientFileName, certificateForClient);
-
-            return CreateServerCredentials(serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
-        }
-
-        private static ServerCredentials GetServerCredentialsForGeneratedCertificateDeliveredViaHttp()
-        {
-            var keyPair = GenerateKeyPair();
-            var serverCertificate = CertificateManager.GenerateServerCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ServerCertificateSubject, keyPair);
 
             return CreateServerCredentials(serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
         }
