@@ -16,6 +16,8 @@
 
         public static string CertificateForClientFileName => "certificate-for-client.crt";
 
+        public static bool ValidateServerCertificate => false;
+
         public static void ConfigureLogging()
         {
             // System.Environment.SetEnvironmentVariable("GRPC_VERBOSITY", "debug");

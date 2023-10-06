@@ -5,8 +5,10 @@ using System;
 using Common;
 using log4net;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Net.Http;
+using System.Net.Security;
 
 namespace ClientApp.Shared
 {
@@ -93,14 +95,39 @@ namespace ClientApp.Shared
             Log.Info($"Getting server certificate from {serverAddress} ...");
 
             string certificateContent = null;
+            var certificateIsValid = false;
 
             using (var httpClientHandler = new HttpClientHandler())
             {
                 httpClientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
-                httpClientHandler.ServerCertificateCustomValidationCallback = (httpRequestMessage, certificate, cetChain, policyErrors) =>
+                httpClientHandler.ServerCertificateCustomValidationCallback = (httpRequestMessage, certificate, certificateChain, policyErrors) =>
                 {
                     // We extract certificate content within a callback because original certificate is disposed after callback is called.
                     certificateContent = certificate?.ExportCertificate();
+
+                    void LogCertificateError(string message)
+                    {
+                        if (ConnectionSettings.ValidateServerCertificate)
+                        {
+                            Log.Error(message);
+                        }
+                        else
+                        {
+                            Log.Debug(message);
+                        }
+                    }
+
+                    certificateIsValid = policyErrors == SslPolicyErrors.None;
+                    if (!certificateIsValid)
+                    {
+                        LogCertificateError($"Certificate policy errors: {policyErrors}");
+                    }
+
+                    if (certificateChain?.ChainStatus?.Any() == true)
+                    {
+                        var chainStatusInfo = String.Join(Environment.NewLine, certificateChain.ChainStatus.Select((x, i) => $"{i + 1}. {x.Status}: '{x.StatusInformation}'"));
+                        LogCertificateError($"Certificate chain status: {chainStatusInfo}");
+                    }
 
                     return true;
                 };
@@ -121,6 +148,11 @@ namespace ClientApp.Shared
             if (certificateContent == null)
             {
                 throw new InvalidOperationException("Failed to get server certificate");
+            }
+
+            if (ConnectionSettings.ValidateServerCertificate && !certificateIsValid)
+            {
+                throw new InvalidOperationException("Server certificate is not valid");
             }
 
             Log.Info("Got server certificate successfully");
