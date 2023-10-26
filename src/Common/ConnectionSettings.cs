@@ -16,7 +16,11 @@
 
         public static string CertificateForClientFileName => "certificate-for-client.crt";
 
-        public static bool ValidateServerCertificate => false;
+        public static string PfxFilePassword => "Qwerty123";
+
+        public static string SubjectOfCertificateInStore => ServerHostName;
+
+        public static bool ValidateServerCertificate => true;
 
         public static void ConfigureLogging()
         {

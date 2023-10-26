@@ -5,6 +5,7 @@
         Insecure,
         CertificateFromDisk,
         CertificateFromPfxOnDiskDeliveredViaHttp,
+        CertificateFromStoreDeliveredViaHttp,
         GeneratedCertificateDeliveredViaHttp,
         GeneratedCertificateDeliveredViaFilesystem,
     }

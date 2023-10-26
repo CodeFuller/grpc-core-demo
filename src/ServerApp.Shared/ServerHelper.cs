@@ -4,6 +4,8 @@ using Grpc.Core;
 using GrpcCoreDemo.Grpc;
 using System.IO;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto;
@@ -45,6 +47,9 @@ namespace ServerApp.Shared
                 case SecurityType.CertificateFromPfxOnDiskDeliveredViaHttp:
                     return GetServerCredentialsForCertificateFromPfxOnDisk();
 
+                case SecurityType.CertificateFromStoreDeliveredViaHttp:
+                    return GetServerCredentialsForCertificateFromStore();
+
                 case SecurityType.GeneratedCertificateDeliveredViaHttp:
                     return GetServerCredentialsForGeneratedCertificateDeliveredViaHttp();
 
@@ -75,8 +80,40 @@ namespace ServerApp.Shared
 
             Log.Info($"Reading certificate from folder '{certificateFolderPath}' ...");
 
-            var certificate = new X509Certificate2(Path.Combine(certificateFolderPath, "server.pfx"), String.Empty, X509KeyStorageFlags.Exportable);
-            return CreateServerCredentials(certificate.ExportCertificate(), certificate.ExportPrivateRsaKey());
+            var serverCertificate = new X509Certificate2(Path.Combine(certificateFolderPath, "server.pfx"), ConnectionSettings.PfxFilePassword, X509KeyStorageFlags.Exportable);
+            return CreateServerCredentials(serverCertificate.ExportCertificate(), serverCertificate.ExportPrivateRsaKey());
+        }
+
+        private static ServerCredentials GetServerCredentialsForCertificateFromStore()
+        {
+            List<X509Certificate2> certificates;
+
+            var certificateSubject = ConnectionSettings.SubjectOfCertificateInStore;
+
+            using (var certStore = new X509Store(StoreName.TrustedPublisher, StoreLocation.LocalMachine))
+            {
+                certStore.Open(OpenFlags.ReadOnly);
+                certificates = certStore.Certificates.Find(X509FindType.FindBySubjectName, certificateSubject, validOnly: false)
+                    .Cast<X509Certificate2>()
+                    .Where(c => c.HasPrivateKey)
+                    .ToList();
+
+                certStore.Close();
+            }
+
+            if (!certificates.Any())
+            {
+                throw new InvalidOperationException($"There is no certificate matching subject '{certificateSubject}'");
+            }
+
+            if (certificates.Count > 1)
+            {
+                throw new InvalidOperationException($"There are multiple ({certificates.Count}) certificates matching subject '{certificateSubject}'");
+            }
+
+            var serverCertificate = certificates.Single();
+
+            return CreateServerCredentials(serverCertificate.ExportCertificate(), serverCertificate.ExportPrivateRsaKey());
         }
 
         private static ServerCredentials GetServerCredentialsForGeneratedCertificateDeliveredViaHttp()

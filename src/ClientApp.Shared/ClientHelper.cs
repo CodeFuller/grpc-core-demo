@@ -52,6 +52,7 @@ namespace ClientApp.Shared
                     return GetClientCredentialsForCertificateFromDisk();
 
                 case SecurityType.CertificateFromPfxOnDiskDeliveredViaHttp:
+                case SecurityType.CertificateFromStoreDeliveredViaHttp:
                 case SecurityType.GeneratedCertificateDeliveredViaHttp:
                     return GetClientCredentialsForCertificateDeliveredViaHttp();
 
