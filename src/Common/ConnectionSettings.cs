@@ -1,31 +1,25 @@
 ﻿namespace Common
 {
-    public static class ConnectionSettings
+    public class ConnectionSettings
     {
-        public static string ServerHostName => "IHARM-WIN-BLR.cucorp.controlup.com";
+        public string ServerHostName { get; set; }
 
-        public static int ServerPortNumber => 9999;
+        public int ServerPortNumber { get; set; }
 
-        public static SecurityType SecurityType => SecurityType.GeneratedCertificateDeliveredViaHttp;
+        public SecurityType SecurityType { get; set; }
 
-        public static string CertificateIssuer => "O=CodeFuller, CN=GrpcCoreDemo";
+        public string CertificateIssuer { get; set; }
 
-        public static string ServerCertificateSubject => $"O=CodeFuller, CN={ServerHostName}";
+        public string ServerCertificateSubject => $"O=CodeFuller, CN={ServerHostName}";
 
-        public static string ClientCertificateSubject => "O=CodeFuller, CN=GrpcCoreDemo";
+        public string ClientCertificateSubject { get; set; }
 
-        public static string CertificateForClientFileName => "certificate-for-client.crt";
+        public string CertificateForClientFileName { get; set; }
 
-        public static string PfxFilePassword => "Qwerty123";
+        public string PfxFilePassword { get; set; }
 
-        public static string SubjectOfCertificateInStore => ServerHostName;
+        public string SubjectOfCertificateInStore => ServerHostName;
 
-        public static bool ValidateServerCertificate => true;
-
-        public static void ConfigureLogging()
-        {
-            // System.Environment.SetEnvironmentVariable("GRPC_VERBOSITY", "debug");
-            // System.Environment.SetEnvironmentVariable("GRPC_TRACE", "handshaker");
-        }
+        public bool ValidateServerCertificate { get; set; }
     }
 }

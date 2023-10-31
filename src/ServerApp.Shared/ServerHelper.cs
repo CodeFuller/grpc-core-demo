@@ -20,50 +20,52 @@ namespace ServerApp.Shared
 
         public static void StartServer()
         {
-            Log.Info($"Starting server at {ConnectionSettings.ServerHostName}:{ConnectionSettings.ServerPortNumber} ...");
-            Log.Info($"Server security type: {ConnectionSettings.SecurityType}");
+            var connectionSettings = ApplicationSettings.GetConnectionSettings();
 
-            ConnectionSettings.ConfigureLogging();
+            Log.Info($"Starting server at {connectionSettings.ServerHostName}:{connectionSettings.ServerPortNumber} ...");
+            Log.Info($"Server security type: {connectionSettings.SecurityType}");
+
+            ApplicationSettings.ConfigureLogging();
 
             var server = new Server
             {
                 Services = { Greeter.BindService(new GreeterService()) },
-                Ports = { new ServerPort(ConnectionSettings.ServerHostName, ConnectionSettings.ServerPortNumber, GetServerCredentials()) }
+                Ports = { new ServerPort(connectionSettings.ServerHostName, connectionSettings.ServerPortNumber, GetServerCredentials(connectionSettings)) }
             };
 
             server.Start();
         }
 
-        private static ServerCredentials GetServerCredentials()
+        private static ServerCredentials GetServerCredentials(ConnectionSettings connectionSettings)
         {
-            switch (ConnectionSettings.SecurityType)
+            switch (connectionSettings.SecurityType)
             {
                 case SecurityType.Insecure:
                     return ServerCredentials.Insecure;
 
                 case SecurityType.CertificateFromDisk:
-                    return GetServerCredentialsForCertificateFromDisk();
+                    return GetServerCredentialsForCertificateFromDisk(connectionSettings);
 
                 case SecurityType.CertificateFromPfxOnDiskDeliveredViaHttp:
-                    return GetServerCredentialsForCertificateFromPfxOnDisk();
+                    return GetServerCredentialsForCertificateFromPfxOnDisk(connectionSettings);
 
                 case SecurityType.CertificateFromStoreDeliveredViaHttp:
-                    return GetServerCredentialsForCertificateFromStore();
+                    return GetServerCredentialsForCertificateFromStore(connectionSettings);
 
                 case SecurityType.GeneratedCertificateDeliveredViaHttp:
-                    return GetServerCredentialsForGeneratedCertificateDeliveredViaHttp();
+                    return GetServerCredentialsForGeneratedCertificateDeliveredViaHttp(connectionSettings);
 
                 case SecurityType.GeneratedCertificateDeliveredViaFilesystem:
-                    return GetServerCredentialsForGeneratedCertificateDeliveredViaFilesystem();
+                    return GetServerCredentialsForGeneratedCertificateDeliveredViaFilesystem(connectionSettings);
 
                 default:
-                    throw new NotSupportedException($"Security type is not supported by the server: {ConnectionSettings.SecurityType}");
+                    throw new NotSupportedException($"Security type is not supported by the server: {connectionSettings.SecurityType}");
             }
         }
 
-        private static ServerCredentials GetServerCredentialsForCertificateFromDisk()
+        private static ServerCredentials GetServerCredentialsForCertificateFromDisk(ConnectionSettings connectionSettings)
         {
-            var certificateFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.ServerHostName);
+            var certificateFolderPath = Path.Combine(@"c:\temp\certificates", connectionSettings.ServerHostName);
 
             Log.Info($"Reading certificate from folder '{certificateFolderPath}' ...");
 
@@ -74,21 +76,21 @@ namespace ServerApp.Shared
             return CreateServerCredentials(serverCertificate, serverKey);
         }
 
-        private static ServerCredentials GetServerCredentialsForCertificateFromPfxOnDisk()
+        private static ServerCredentials GetServerCredentialsForCertificateFromPfxOnDisk(ConnectionSettings connectionSettings)
         {
-            var certificateFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.ServerHostName);
+            var certificateFolderPath = Path.Combine(@"c:\temp\certificates", connectionSettings.ServerHostName);
 
             Log.Info($"Reading certificate from folder '{certificateFolderPath}' ...");
 
-            var serverCertificate = new X509Certificate2(Path.Combine(certificateFolderPath, "server.pfx"), ConnectionSettings.PfxFilePassword, X509KeyStorageFlags.Exportable);
+            var serverCertificate = new X509Certificate2(Path.Combine(certificateFolderPath, "server.pfx"), connectionSettings.PfxFilePassword, X509KeyStorageFlags.Exportable);
             return CreateServerCredentials(serverCertificate.ExportCertificate(), serverCertificate.ExportPrivateRsaKey());
         }
 
-        private static ServerCredentials GetServerCredentialsForCertificateFromStore()
+        private static ServerCredentials GetServerCredentialsForCertificateFromStore(ConnectionSettings connectionSettings)
         {
             List<X509Certificate2> certificates;
 
-            var certificateSubject = ConnectionSettings.SubjectOfCertificateInStore;
+            var certificateSubject = connectionSettings.SubjectOfCertificateInStore;
 
             using (var certStore = new X509Store(StoreName.TrustedPublisher, StoreLocation.LocalMachine))
             {
@@ -116,21 +118,21 @@ namespace ServerApp.Shared
             return CreateServerCredentials(serverCertificate.ExportCertificate(), serverCertificate.ExportPrivateRsaKey());
         }
 
-        private static ServerCredentials GetServerCredentialsForGeneratedCertificateDeliveredViaHttp()
+        private static ServerCredentials GetServerCredentialsForGeneratedCertificateDeliveredViaHttp(ConnectionSettings connectionSettings)
         {
             var keyPair = GenerateKeyPair();
-            var serverCertificate = CertificateManager.GenerateServerCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ServerCertificateSubject, keyPair);
+            var serverCertificate = CertificateManager.GenerateServerCertificate(connectionSettings.CertificateIssuer, connectionSettings.ServerCertificateSubject, keyPair);
 
             return CreateServerCredentials(serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
         }
 
-        private static ServerCredentials GetServerCredentialsForGeneratedCertificateDeliveredViaFilesystem()
+        private static ServerCredentials GetServerCredentialsForGeneratedCertificateDeliveredViaFilesystem(ConnectionSettings connectionSettings)
         {
             var keyPair = GenerateKeyPair();
-            var serverCertificate = CertificateManager.GenerateServerCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ServerCertificateSubject, keyPair);
+            var serverCertificate = CertificateManager.GenerateServerCertificate(connectionSettings.CertificateIssuer, connectionSettings.ServerCertificateSubject, keyPair);
 
-            var certificateForClient = CertificateManager.GenerateClientCertificate(ConnectionSettings.CertificateIssuer, ConnectionSettings.ClientCertificateSubject, keyPair).ExportCertificate();
-            File.WriteAllText(ConnectionSettings.CertificateForClientFileName, certificateForClient);
+            var certificateForClient = CertificateManager.GenerateClientCertificate(connectionSettings.CertificateIssuer, connectionSettings.ClientCertificateSubject, keyPair).ExportCertificate();
+            File.WriteAllText(connectionSettings.CertificateForClientFileName, certificateForClient);
 
             return CreateServerCredentials(serverCertificate.ExportCertificate(), ExportPrivateKey(keyPair));
         }

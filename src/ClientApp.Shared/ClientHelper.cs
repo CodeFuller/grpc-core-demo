@@ -18,12 +18,14 @@ namespace ClientApp.Shared
 
         public static void RunClient()
         {
-            Log.Info($"Creating service client for {ConnectionSettings.ServerHostName}:{ConnectionSettings.ServerPortNumber} ...");
-            Log.Info($"Client security type: {ConnectionSettings.SecurityType}");
+            var connectionSettings = ApplicationSettings.GetConnectionSettings();
 
-            ConnectionSettings.ConfigureLogging();
+            Log.Info($"Creating service client for {connectionSettings.ServerHostName}:{connectionSettings.ServerPortNumber} ...");
+            Log.Info($"Client security type: {connectionSettings.SecurityType}");
 
-            var channel = new Channel(ConnectionSettings.ServerHostName, ConnectionSettings.ServerPortNumber, GetClientCredentials());
+            ApplicationSettings.ConfigureLogging();
+
+            var channel = new Channel(connectionSettings.ServerHostName, connectionSettings.ServerPortNumber, GetClientCredentials(connectionSettings));
             var client = new Greeter.GreeterClient(channel);
 
             Log.Info("Subscribing to greeting notifications ...");
@@ -41,32 +43,32 @@ namespace ClientApp.Shared
             }
         }
 
-        private static ChannelCredentials GetClientCredentials()
+        private static ChannelCredentials GetClientCredentials(ConnectionSettings connectionSettings)
         {
-            switch (ConnectionSettings.SecurityType)
+            switch (connectionSettings.SecurityType)
             {
                 case SecurityType.Insecure:
                     return ChannelCredentials.Insecure;
 
                 case SecurityType.CertificateFromDisk:
-                    return GetClientCredentialsForCertificateFromDisk();
+                    return GetClientCredentialsForCertificateFromDisk(connectionSettings);
 
                 case SecurityType.CertificateFromPfxOnDiskDeliveredViaHttp:
                 case SecurityType.CertificateFromStoreDeliveredViaHttp:
                 case SecurityType.GeneratedCertificateDeliveredViaHttp:
-                    return GetClientCredentialsForCertificateDeliveredViaHttp();
+                    return GetClientCredentialsForCertificateDeliveredViaHttp(connectionSettings);
 
                 case SecurityType.GeneratedCertificateDeliveredViaFilesystem:
-                    return GetClientCredentialsForGeneratedCertificateDeliveredViaFilesystem();
+                    return GetClientCredentialsForGeneratedCertificateDeliveredViaFilesystem(connectionSettings);
 
                 default:
-                    throw new NotSupportedException($"Security type is not supported by the client: {ConnectionSettings.SecurityType}");
+                    throw new NotSupportedException($"Security type is not supported by the client: {connectionSettings.SecurityType}");
             }
         }
 
-        private static SslCredentials GetClientCredentialsForCertificateFromDisk()
+        private static SslCredentials GetClientCredentialsForCertificateFromDisk(ConnectionSettings connectionSettings)
         {
-            var certificateFolderPath = Path.Combine(@"c:\temp\certificates", ConnectionSettings.ServerHostName);
+            var certificateFolderPath = Path.Combine(@"c:\temp\certificates", connectionSettings.ServerHostName);
 
             Log.Info($"Reading certificate from folder '{certificateFolderPath}' ...");
 
@@ -75,11 +77,11 @@ namespace ClientApp.Shared
             return new SslCredentials(rootCertificate);
         }
 
-        private static SslCredentials GetClientCredentialsForGeneratedCertificateDeliveredViaFilesystem()
+        private static SslCredentials GetClientCredentialsForGeneratedCertificateDeliveredViaFilesystem(ConnectionSettings connectionSettings)
         {
-            var certificateForClientFileName = ConnectionSettings.CertificateForClientFileName;
+            var certificateForClientFileName = connectionSettings.CertificateForClientFileName;
 
-            if (!File.Exists(ConnectionSettings.CertificateForClientFileName))
+            if (!File.Exists(certificateForClientFileName))
             {
                 throw new InvalidOperationException($"Certificate for client is missing - '{certificateForClientFileName}'");
             }
@@ -90,9 +92,9 @@ namespace ClientApp.Shared
             return new SslCredentials(certificate);
         }
 
-        private static SslCredentials GetClientCredentialsForCertificateDeliveredViaHttp()
+        private static SslCredentials GetClientCredentialsForCertificateDeliveredViaHttp(ConnectionSettings connectionSettings)
         {
-            var serverAddress = new Uri($"https://{ConnectionSettings.ServerHostName}:{ConnectionSettings.ServerPortNumber}");
+            var serverAddress = new Uri($"https://{connectionSettings.ServerHostName}:{connectionSettings.ServerPortNumber}");
 
             Log.Info($"Getting server certificate from {serverAddress} ...");
 
@@ -104,12 +106,14 @@ namespace ClientApp.Shared
                 httpClientHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
                 httpClientHandler.ServerCertificateCustomValidationCallback = (httpRequestMessage, certificate, certificateChain, policyErrors) =>
                 {
+                    Log.Info("Certificate callback was called");
+
                     // We extract certificate content within a callback because original certificate is disposed after callback is called.
                     certificateContent = certificate?.ExportCertificate();
 
                     void LogCertificateError(string message)
                     {
-                        if (ConnectionSettings.ValidateServerCertificate)
+                        if (connectionSettings.ValidateServerCertificate)
                         {
                             Log.Error(message);
                         }
@@ -152,7 +156,7 @@ namespace ClientApp.Shared
                 throw new InvalidOperationException("Failed to get server certificate");
             }
 
-            if (ConnectionSettings.ValidateServerCertificate && !certificateIsValid)
+            if (connectionSettings.ValidateServerCertificate && !certificateIsValid)
             {
                 throw new InvalidOperationException("Server certificate is not valid");
             }
