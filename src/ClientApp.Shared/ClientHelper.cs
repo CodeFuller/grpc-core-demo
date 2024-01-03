@@ -25,6 +25,8 @@ namespace ClientApp.Shared
 
             ApplicationSettings.ConfigureLogging();
 
+            Environment.SetEnvironmentVariable("GRPC_DNS_RESOLVER", "native");
+
             var channel = new Channel(connectionSettings.ServerHostName, connectionSettings.ServerPortNumber, GetClientCredentials(connectionSettings));
             var client = new Greeter.GreeterClient(channel);
 
