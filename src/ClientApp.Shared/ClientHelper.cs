@@ -43,6 +43,10 @@ namespace ClientApp.Shared
                 var response = client.SayHello(new HelloRequest { Name = "CodeFuller" });
                 Log.Info($"Result: '{response.Message}'");
             }
+
+            Log.Info("Shutting down the channel ...");
+            channel.ShutdownAsync().GetAwaiter().GetResult();
+            Log.Info("Channel was shut down");
         }
 
         private static ChannelCredentials GetClientCredentials(ConnectionSettings connectionSettings)
